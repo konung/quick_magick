@@ -36,6 +36,7 @@ module QuickMagick
         template_name << '-' << color2.to_s if color2
         i = self.new(template_name, 0, nil, true)
         i.size = QuickMagick::geometry(width, height)
+        yield(i) if block_given?
         i
       end
       
@@ -45,6 +46,7 @@ module QuickMagick
         template_name << color.to_s if color
         i = self.new(template_name, 0, nil, true)
         i.size = QuickMagick::geometry(width, height)
+        yield(i) if block_given?
         i
       end
       
@@ -54,13 +56,14 @@ module QuickMagick
         template_name = "pattern:#{pattern.to_s}"
         i = self.new(template_name, 0, nil, true)
         i.size = QuickMagick::geometry(width, height)
+        yield(i) if block_given?
         i
       end
 
       # returns info for an image using <code>identify</code> command
       def identify(filename)
 	    	error_file = Tempfile.new('identify_error')
-        result = `identify #{filename} 2>'#{error_file.path}'`
+        result = `identify #{filename}  ` # 2> #{error_file.path}`
         unless $?.success?
 		      error_message = <<-ERROR
 		        Error executing command: identify #{filename}
@@ -375,7 +378,7 @@ module QuickMagick
     # saves the current image to the given filename
     def save(output_filename)
     	error_file = Tempfile.new('convert_error')
-      result = `convert #{command_line} '#{output_filename}' 2>'#{error_file.path}'`
+      result = `convert #{command_line} #{output_filename} ` # 2> #{error_file.path}`
       if $?.success?
       	if @pseudo_image
       		# since it's been saved, convert it to normal image (not pseudo)
@@ -402,7 +405,7 @@ module QuickMagick
     def save!
       raise QuickMagick::QuickMagickError, "Cannot mogrify a pseudo image" if @pseudo_image
      	error_file = Tempfile.new('mogrify_error')
-      result = `mogrify #{command_line} 2>'#{error_file.path}'`
+      result = `mogrify #{command_line} ` # 2> #{error_file.path}`
       if $?.success?
         # remove all operations to avoid duplicate operations
         revert!
@@ -479,7 +482,7 @@ module QuickMagick
     # It is not recommended at all to use this method for image processing for example.
     def get_pixel(x, y)
     	error_file = Tempfile.new('identify_error')
-      result = `identify -verbose -crop #{QuickMagick::geometry(1,1,x,y)} #{QuickMagick::c(image_filename)}[#{@index}]  2>'#{error_file.path}'`
+      result = `identify -verbose -crop #{QuickMagick::geometry(1,1,x,y)} #{QuickMagick::c(image_filename)}[#{@index}]  ` # 2> #{error_file.path}`
       unless $?.success?
 	      error_message = <<-ERROR
 	        Error executing command: identify #{image_filename}
